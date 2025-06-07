@@ -238,17 +238,24 @@ GET /health
 GET /api/events?page=1&limit=50&sport=cricket&eventGroup=match_level
 ```
 
-### Get Events by Sport
+### Get Matches by Sport (Returns match IDs & titles)
 ```http
-GET /api/events/sport/cricket
-GET /api/events/sport/tennis  
-GET /api/events/sport/basketball
-GET /api/events/sport/soccer
+GET /api/events/sport/cricket     # Returns cricket matches with IDs
+GET /api/events/sport/tennis      # Returns tennis matches with IDs
+GET /api/events/sport/basketball  # Returns basketball matches with IDs
+GET /api/events/sport/soccer      # Returns soccer matches with IDs
 ```
 
-### Get Events by Match
+### Get All Matches (All Sports)
 ```http
-GET /api/events/match/England%20vs%20Australia?sport=cricket
+GET /api/matches                  # All matches grouped by sport
+GET /api/matches?sport=cricket    # Filter by specific sport
+```
+
+### Get All Events for Specific Match
+```http
+GET /api/events/match/{matchId}                    # All events for match
+GET /api/events/match/{matchId}?groupBy=category   # Events grouped by category
 ```
 
 ### Get Events by Group
@@ -408,19 +415,74 @@ RATE_LIMIT_MAX_REQUESTS=100
 
 ## 📞 API Examples
 
-### Fetch Cricket Events
+### 1. Get Cricket Matches (First Step)
 ```javascript
-fetch('https://your-app.onrender.com/api/events/sport/cricket?limit=10')
+fetch('https://your-app.onrender.com/api/events/sport/cricket')
   .then(response => response.json())
   .then(data => {
-    console.log(`Found ${data.count} cricket events`);
+    console.log(`Found ${data.matchCount} cricket matches`);
+    data.data.forEach(match => {
+      console.log(`Match ID: ${match.matchId}`);
+      console.log(`Match: ${match.matchName}`);
+      console.log(`Events: ${match.totalEvents}`);
+      console.log('---');
+    });
+  });
+```
+
+### 2. Get All Events for Specific Match (Second Step)
+```javascript
+// Using matchId from previous call
+const matchId = 'cricket_match123_1703123456789';
+
+fetch(`https://your-app.onrender.com/api/events/match/${matchId}`)
+  .then(response => response.json())
+  .then(data => {
+    console.log(`Match: ${data.matchInfo.matchName}`);
+    console.log(`Total Events: ${data.totalEvents}`);
+    
     data.data.forEach(event => {
       console.log(`${event.event} - Yes: ${event.options.Yes}, No: ${event.options.No}`);
     });
   });
 ```
 
-### Get Match Statistics
+### 3. Get Events Grouped by Category
+```javascript
+fetch(`https://your-app.onrender.com/api/events/match/${matchId}?groupBy=category`)
+  .then(response => response.json())
+  .then(data => {
+    console.log(`Match: ${data.matchInfo.matchName}`);
+    
+    // Events are now grouped by category
+    Object.keys(data.data).forEach(category => {
+      console.log(`\n${category.toUpperCase()}:`);
+      data.data[category].forEach(event => {
+        console.log(`  ${event.event}`);
+      });
+    });
+  });
+```
+
+### 4. Get All Matches (All Sports)
+```javascript
+fetch('https://your-app.onrender.com/api/matches')
+  .then(response => response.json())
+  .then(data => {
+    console.log(`Total matches: ${data.totalMatches}`);
+    console.log(`Sports available: ${data.sports.join(', ')}`);
+    
+    // Matches are grouped by sport
+    Object.keys(data.data).forEach(sport => {
+      console.log(`\n${sport.toUpperCase()}:`);
+      data.data[sport].forEach(match => {
+        console.log(`  ${match.matchName} (${match.totalEvents} events)`);
+      });
+    });
+  });
+```
+
+### 5. Get Match Statistics
 ```javascript
 fetch('https://your-app.onrender.com/api/stats')
   .then(response => response.json())

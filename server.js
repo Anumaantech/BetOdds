@@ -96,11 +96,10 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
-// Get events by sport
+// Get matches by sport (returns match summaries, not individual events)
 app.get('/api/events/sport/:sport', async (req, res) => {
   try {
     const { sport } = req.params;
-    const { limit = 100 } = req.query;
 
     if (!['cricket', 'tennis', 'basketball', 'soccer'].includes(sport)) {
       return res.status(400).json({
@@ -109,38 +108,102 @@ app.get('/api/events/sport/:sport', async (req, res) => {
       });
     }
 
-    const events = await Event.findBySport(sport, parseInt(limit));
+    // Aggregate to get unique matches with event counts
+    const matches = await Event.aggregate([
+      { 
+        $match: { 
+          sport: sport, 
+          isActive: true 
+        } 
+      },
+      {
+        $group: {
+          _id: '$matchId',
+          matchName: { $first: '$matchName' },
+          totalEvents: { $sum: 1 },
+          extractedAt: { $max: '$extractedAt' },
+          eventGroups: {
+            $addToSet: '$eventGroup'
+          }
+        }
+      },
+      {
+        $project: {
+          matchId: '$_id',
+          matchName: 1,
+          totalEvents: 1,
+          extractedAt: 1,
+          eventGroups: 1,
+          _id: 0
+        }
+      },
+      { 
+        $sort: { extractedAt: -1 } 
+      }
+    ]);
     
     res.json({
       success: true,
       sport,
-      count: events.length,
-      data: events
+      matchCount: matches.length,
+      data: matches
     });
   } catch (error) {
-    console.error('Error fetching events by sport:', error);
+    console.error('Error fetching matches by sport:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch events by sport',
+      error: 'Failed to fetch matches by sport',
       message: error.message
     });
   }
 });
 
-// Get events by match
-app.get('/api/events/match/:matchName', async (req, res) => {
+// Get all events for a specific match by matchId
+app.get('/api/events/match/:matchId', async (req, res) => {
   try {
-    const { matchName } = req.params;
-    const { sport } = req.query;
+    const { matchId } = req.params;
+    const { groupBy } = req.query;
 
-    const events = await Event.findByMatch(matchName, sport);
+    const events = await Event.find({ 
+      matchId: matchId,
+      isActive: true 
+    }).sort({ extractedAt: -1 });
+
+    if (events.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No events found for this match'
+      });
+    }
+
+    // Get match info from first event
+    const matchInfo = {
+      matchId: events[0].matchId,
+      matchName: events[0].matchName,
+      sport: events[0].sport,
+      extractedAt: events[0].extractedAt
+    };
+
+    // Group events by eventGroup if requested
+    let responseData;
+    if (groupBy === 'category') {
+      responseData = events.reduce((acc, event) => {
+        const group = event.eventGroup;
+        if (!acc[group]) {
+          acc[group] = [];
+        }
+        acc[group].push(event);
+        return acc;
+      }, {});
+    } else {
+      responseData = events;
+    }
     
     res.json({
       success: true,
-      matchName,
-      sport: sport || 'all',
-      count: events.length,
-      data: events
+      matchInfo,
+      totalEvents: events.length,
+      data: responseData
     });
   } catch (error) {
     console.error('Error fetching events by match:', error);
@@ -329,6 +392,72 @@ app.post('/api/events/save', async (req, res) => {
   }
 });
 
+// Get all matches across all sports
+app.get('/api/matches', async (req, res) => {
+  try {
+    const { sport } = req.query;
+    
+    let matchQuery = { isActive: true };
+    if (sport) {
+      matchQuery.sport = sport;
+    }
+
+    // Aggregate to get unique matches across all sports
+    const matches = await Event.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: { matchId: '$matchId', sport: '$sport' },
+          matchName: { $first: '$matchName' },
+          sport: { $first: '$sport' },
+          totalEvents: { $sum: 1 },
+          extractedAt: { $max: '$extractedAt' },
+          eventGroups: {
+            $addToSet: '$eventGroup'
+          }
+        }
+      },
+      {
+        $project: {
+          matchId: '$_id.matchId',
+          matchName: 1,
+          sport: 1,
+          totalEvents: 1,
+          extractedAt: 1,
+          eventGroups: 1,
+          _id: 0
+        }
+      },
+      { 
+        $sort: { extractedAt: -1 } 
+      }
+    ]);
+    
+    // Group by sport for better organization
+    const groupedBySport = matches.reduce((acc, match) => {
+      if (!acc[match.sport]) {
+        acc[match.sport] = [];
+      }
+      acc[match.sport].push(match);
+      return acc;
+    }, {});
+    
+    res.json({
+      success: true,
+      totalMatches: matches.length,
+      sports: Object.keys(groupedBySport),
+      data: groupedBySport
+    });
+  } catch (error) {
+    console.error('Error fetching all matches:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch matches',
+      message: error.message
+    });
+  }
+});
+
 // Get available filters/options
 app.get('/api/filters', async (req, res) => {
   try {
@@ -374,10 +503,11 @@ app.use('*', (req, res) => {
     availableEndpoints: [
       'GET /health',
       'GET /api/events',
-      'GET /api/events/sport/:sport',
-      'GET /api/events/match/:matchName',
+      'GET /api/events/sport/:sport (returns matches for sport)',
+      'GET /api/events/match/:matchId (returns all events for match)',
       'GET /api/events/group/:eventGroup',
       'GET /api/events/:eventId',
+      'GET /api/matches (all matches across sports)',
       'GET /api/stats',
       'POST /api/events/save',
       'GET /api/filters'
