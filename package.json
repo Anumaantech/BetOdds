@@ -3,10 +3,10 @@
   "name": "1xbet-data-extractor",
   "version": "1.0.0",
   "description": "A tool to extract betting data from 1xbet cricket matches",
-  "main": "server.js",
+  "main": "enhanced-monitoring-system.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node enhanced-monitoring-system.js",
+    "dev": "nodemon enhanced-monitoring-system.js",
     "api": "node api.js",
     "client": "node client.js",
     "set-url": "node set-url.js",
