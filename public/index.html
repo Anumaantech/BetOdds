@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Monitoring System - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-ready { background: #d1ecf1; color: #0c5460; }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-paused { background: #f8d7da; color: #721c24; }
+        .status-error { background: #f5c6cb; color: #721c24; }
+        
+        .actions {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        button:hover { background: #0056b3; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
+        button.warning { background: #ffc107; color: #212529; }
+        button.warning:hover { background: #e0a800; }
+        
+        .urls-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .url-item {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .url-item:last-child {
+            border-bottom: none;
+        }
+        
+        .url-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .url-title {
+            font-weight: 600;
+            color: #333;
+            word-break: break-all;
+        }
+        
+        .url-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .url-actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .url-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .detail-item {
+            font-size: 14px;
+        }
+        
+        .detail-label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        
+        .detail-value {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success { background: #28a745; }
+        .notification.error { background: #dc3545; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .url-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .url-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Enhanced Monitoring System</h1>
+            <div class="status-bar" id="statusBar">
+                <div class="status-item">Loading...</div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <h2>Add New URL</h2>
+            <form id="addUrlForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="url">URL *</label>
+                        <input type="url" id="url" required placeholder="https://example.com/api">
+                    </div>
+                    <div class="form-group">
+                        <label for="startTime">Start Time</label>
+                        <select id="startTime">
+                            <option value="now">Start Now</option>
+                            <option value="custom">Custom Time</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interval">Interval (ms)</label>
+                        <input type="number" id="interval" value="1000" min="500">
+                    </div>
+                </div>
+                <div class="form-row" id="customTimeRow" style="display: none;">
+                    <div class="form-group">
+                        <label for="customDateTime">Custom Start Time</label>
+                        <input type="datetime-local" id="customDateTime">
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">Priority</label>
+                        <select id="priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Add URL</button>
+                    </div>
+                </div>
+                <div class="form-row" id="nowTimeRow">
+                    <div></div>
+                    <div class="form-group">
+                        <label for="priority2">Priority</label>
+                        <select id="priority2">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Add URL</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="urls-list">
+            <div id="urlsList">
+                <div class="empty-state">
+                    Loading URLs...
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <script>
+        let urls = [];
+        let systemStatus = {};
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSystemStatus();
+            loadUrls();
+            setupEventListeners();
+            
+            // Auto-refresh every 5 seconds
+            setInterval(() => {
+                loadSystemStatus();
+                loadUrls();
+            }, 5000);
+        });
+        
+        function setupEventListeners() {
+            document.getElementById('addUrlForm').addEventListener('submit', handleAddUrl);
+            document.getElementById('startTime').addEventListener('change', toggleCustomTime);
+        }
+        
+        function toggleCustomTime() {
+            const startTime = document.getElementById('startTime').value;
+            const customRow = document.getElementById('customTimeRow');
+            const nowRow = document.getElementById('nowTimeRow');
+            
+            if (startTime === 'custom') {
+                customRow.style.display = 'block';
+                nowRow.style.display = 'none';
+            } else {
+                customRow.style.display = 'none';
+                nowRow.style.display = 'block';
+            }
+        }
+        
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    systemStatus = data;
+                    updateStatusBar();
+                }
+            } catch (error) {
+                console.error('Error loading system status:', error);
+            }
+        }
+        
+        function updateStatusBar() {
+            const statusBar = document.getElementById('statusBar');
+            const { totalUrls, statusCounts, activeUrls } = systemStatus;
+            
+            let html = `<div class="status-item">Total: ${totalUrls}</div>`;
+            html += `<div class="status-item status-active">Active: ${activeUrls}</div>`;
+            
+            Object.entries(statusCounts || {}).forEach(([status, count]) => {
+                if (status !== 'active') {
+                    html += `<div class="status-item status-${status}">${status}: ${count}</div>`;
+                }
+            });
+            
+            statusBar.innerHTML = html;
+        }
+        
+        async function loadUrls() {
+            try {
+                const response = await fetch('/api/urls');
+                const data = await response.json();
+                
+                if (data.success) {
+                    urls = data.urls;
+                    renderUrls();
+                }
+            } catch (error) {
+                console.error('Error loading URLs:', error);
+                showNotification('Error loading URLs', 'error');
+            }
+        }
+        
+        function renderUrls() {
+            const urlsList = document.getElementById('urlsList');
+            
+            if (urls.length === 0) {
+                urlsList.innerHTML = '<div class="empty-state">No URLs configured. Add one above to get started!</div>';
+                return;
+            }
+            
+            const html = urls.map(url => `
+                <div class="url-item">
+                    <div class="url-header">
+                        <div class="url-title">${url.url}</div>
+                        <div class="url-actions">
+                            ${url.status === 'active' ? 
+                                `<button class="warning" onclick="deactivateUrl('${url.id}')">Pause</button>` :
+                                `<button class="success" onclick="activateUrl('${url.id}')">Start</button>`
+                            }
+                            <button class="danger" onclick="removeUrl('${url.id}')">Remove</button>
+                        </div>
+                    </div>
+                    <div class="url-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value">
+                                <span class="status-item status-${url.status}">${url.status}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Start Time</div>
+                            <div class="detail-value">${url.startTime === 'now' ? 'Immediate' : new Date(url.startTime).toLocaleString()}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Interval</div>
+                            <div class="detail-value">${url.interval}ms</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Priority</div>
+                            <div class="detail-value">${url.priority}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Last Events</div>
+                            <div class="detail-value">${url.lastEventCount}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Process Count</div>
+                            <div class="detail-value">${url.processCount}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            urlsList.innerHTML = html;
+        }
+        
+        async function handleAddUrl(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const startTimeSelect = document.getElementById('startTime').value;
+            const interval = parseInt(document.getElementById('interval').value);
+            
+            let startTime = 'now';
+            let priority = document.getElementById('priority2').value;
+            
+            if (startTimeSelect === 'custom') {
+                const customDateTime = document.getElementById('customDateTime').value;
+                if (!customDateTime) {
+                    showNotification('Please select a custom start time', 'error');
+                    return;
+                }
+                startTime = new Date(customDateTime).toISOString();
+                priority = document.getElementById('priority').value;
+            }
+            
+            try {
+                const response = await fetch('/api/urls', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url,
+                        startTime,
+                        interval,
+                        priority
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('URL added successfully!', 'success');
+                    document.getElementById('addUrlForm').reset();
+                    document.getElementById('interval').value = '1000';
+                    loadUrls();
+                    loadSystemStatus();
+                } else {
+                    showNotification(data.message || 'Error adding URL', 'error');
+                }
+            } catch (error) {
+                console.error('Error adding URL:', error);
+                showNotification('Error adding URL', 'error');
+            }
+        }
+        
+        async function removeUrl(id) {
+            if (!confirm('Are you sure you want to remove this URL?')) return;
+            
+            try {
+                const response = await fetch(`/api/urls/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('URL removed successfully!', 'success');
+                    loadUrls();
+                    loadSystemStatus();
+                } else {
+                    showNotification(data.message || 'Error removing URL', 'error');
+                }
+            } catch (error) {
+                console.error('Error removing URL:', error);
+                showNotification('Error removing URL', 'error');
+            }
+        }
+        
+        async function activateUrl(id) {
+            try {
+                const response = await fetch(`/api/urls/${id}/activate`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('URL activated successfully!', 'success');
+                    loadUrls();
+                    loadSystemStatus();
+                } else {
+                    showNotification(data.message || 'Error activating URL', 'error');
+                }
+            } catch (error) {
+                console.error('Error activating URL:', error);
+                showNotification('Error activating URL', 'error');
+            }
+        }
+        
+        async function deactivateUrl(id) {
+            try {
+                const response = await fetch(`/api/urls/${id}/deactivate`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('URL paused successfully!', 'success');
+                    loadUrls();
+                    loadSystemStatus();
+                } else {
+                    showNotification(data.message || 'Error pausing URL', 'error');
+                }
+            } catch (error) {
+                console.error('Error pausing URL:', error);
+                showNotification('Error pausing URL', 'error');
+            }
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html> 
