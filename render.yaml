@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: betting-odds-api
+    env: node
+    plan: free # Deploys on Render's free instance type
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - fromGroup: betting-odds-credentials
+
+envVarGroups:
+  - name: betting-odds-credentials
+    envVars:
+      - key: MONGODB_URI
+        value: "mongodb+srv://event07:SzDXawU9TLHL1F3n@events.gshkxun.mongodb.net/betting_odds?retryWrites=true&w=majority&appName=Events"
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: PORT
+        value: "3000" 
