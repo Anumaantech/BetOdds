@@ -3,11 +3,16 @@ const cors = require('cors');
 const dbUtils = require('./db-utils');
 
 const app = express();
-const PORT = 3005;
+const PORT = process.env.PORT || 3005;
 
 // Enable CORS
 app.use(cors());
 app.use(express.json());
+
+// Root endpoint for health checks
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Betting Odds API is running' });
+});
 
 // Health check
 app.get('/health', (req, res) => {
