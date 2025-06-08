@@ -16,18 +16,4 @@ services:
       - key: MONGODB_URI
         sync: false
     autoDeploy: true
-    healthCheckPath: /api/status
-
-  # Cricket API service  
-  - type: web
-    name: cricket-api
-    env: docker
-    plan: starter
-    dockerfilePath: ./Dockerfile.cricket-api
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: MONGODB_URI
-        sync: false
-    autoDeploy: true
-    healthCheckPath: /health 
+    healthCheckPath: /api/status 
