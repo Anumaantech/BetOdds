@@ -16,9 +16,7 @@ services:
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
         value: true
       - key: MONGODB_URI
-        fromDatabase:
-          name: cricket-data-db
-          property: connectionString
+        sync: false
     autoDeploy: true
     healthCheckPath: /api/status
 
@@ -33,14 +31,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: MONGODB_URI
-        fromDatabase:
-          name: cricket-data-db
-          property: connectionString
+        sync: false
     autoDeploy: true
-    healthCheckPath: /health
-
-databases:
-  # MongoDB database using Render's database service
-  - name: cricket-data-db
-    databaseName: cricket_data
-    plan: starter 
+    healthCheckPath: /health 
