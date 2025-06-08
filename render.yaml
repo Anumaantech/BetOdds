@@ -1,0 +1,38 @@
+services:
+  # A web service for the cricket API
+  - type: web
+    name: cricket-api
+    env: docker
+    repo: https://github.com/Anumaantech/BetOdds.git # Replace with your repository URL
+    dockerfilePath: ./Dockerfile
+    plan: free # Or your desired plan
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        fromSecret: true
+    dockerCommand: npm run cricket-api
+
+  # A background worker for the monitoring process
+  - type: worker
+    name: concurrent-monitor
+    env: docker
+    repo: https://github.com/Anumaantech/BetOdds.git # Replace with your repository URL
+    dockerfilePath: ./Dockerfile
+    plan: free # Or your desired plan
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        fromSecret: true
+    dockerCommand: npm run concurrent-monitor
+
+databases:
+  # A PostgreSQL database (or MongoDB, etc.)
+  - name: your-database-name # Replace with your database name
+    databaseName: your_db_name # Replace with your actual database name
+    user: your_db_user # Replace with your actual database user
+    plan: free # Or your desired plan 

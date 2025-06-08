@@ -3,28 +3,18 @@
 Source: Parimatch Global
 Match: England - West Indies Betting Odds. Cricket. Twenty20. 2nd match. National teams. 08.06.2025 on Parimatch
 Event ID: 13348761
-Timestamp: 2025-06-08T11:29:51.288Z
+Timestamp: 2025-06-08T13:16:01.220Z
 
 --- TEAM SCORES ---
 
-Total Markets: 25
+Total Markets: 17
 ===============================
 
 1. Winner (2 outcomes)
-   - England: 1.47
-   - West Indies: 2.70
+   - England: 1.45
+   - West Indies: 2.76
 
-2. England. Exact runs total. Innings #1.Over #1 (8 outcomes)
-   - 5 and less: 2.85
-   - 6 run(-s): 8.88
-   - 7 run(-s): 9.21
-   - 8 run(-s): 9.47
-   - 9 run(-s): 10.35
-   - 10 run(-s): 12.11
-   - 11 run(-s): 15.02
-   - 12 and more runs: 7.72
-
-3. West Indies. Exact runs total. Innings #1.Over #1 (8 outcomes)
+2. West Indies. Exact runs total. Innings #1.Over #1 (8 outcomes)
    - 5 and less: 2.40
    - 6 run(-s): 8.58
    - 7 run(-s): 9.29
@@ -34,38 +24,19 @@ Total Markets: 25
    - 11 run(-s): 17.67
    - 12 and more runs: 10.25
 
-4. Toss winner (2 outcomes)
-   - England: 1.90
-   - West Indies: 1.90
+3. West Indies total runs. Innings #1 (6 outcomes)
+   - Over 178.5: 1.66
+   - Under 178.5: 2.16
+   - Over 183.5: 1.90
+   - Under 183.5: 1.90
+   - Over 188.5: 2.16
+   - Under 188.5: 1.66
 
-5. Toss and match winner (3 outcomes)
-   - England: 2.60
-   - None: 1.90
-   - West Indies: 3.58
-
-6. Toss result and total runs 0.5 on the first delivery (4 outcomes)
-   - England / Over 0.5: 3.91
-   - England / Under 0.5: 2.76
-   - West Indies / Over 0.5: 3.91
-   - West Indies / Under 0.5: 2.76
-
-7. Total runs (2 outcomes)
-   - Under: 2.00
-   - Under: 1.72
-
-8. Total runs. Innings #1.Over #1 (6 outcomes)
-   - Over: 1.54
-   - Under: 2.37
-   - Under: 1.78
-   - Under: 1.97
-   - Under: 2.10
-   - Under: 1.69
-
-9. First boundary will be (2 outcomes)
+4. First boundary will be (2 outcomes)
    - 4 runs: 1.11
    - 6 runs: 5.55
 
-10. First ball of match (11 outcomes)
+5. First ball of match (11 outcomes)
    - 1 run: 3.10
    - 2 runs: 15.00
    - 3 runs: 81.00
@@ -78,7 +49,7 @@ Total Markets: 25
    - Bye/Leg Bye: 26.00
    - Dot Ball: 1.63
 
-11. Second ball of match (11 outcomes)
+6. Second ball of match (11 outcomes)
    - 1 run: 1.95
    - 2 runs: 9.00
    - 3 runs: 51.00
@@ -91,7 +62,7 @@ Total Markets: 25
    - Bye/Leg Bye: 26.00
    - Dot Ball: 1.80
 
-12. Third ball of match (11 outcomes)
+7. Third ball of match (11 outcomes)
    - 1 run: 1.95
    - 2 runs: 9.00
    - 3 runs: 51.00
@@ -104,11 +75,11 @@ Total Markets: 25
    - Bye/Leg Bye: 26.00
    - Dot Ball: 1.80
 
-13. Dismissal #1 method (2-way betting). Innings #1 (2 outcomes)
+8. Dismissal #1 method (2-way betting). Innings #1 (2 outcomes)
    - Caught: 1.30
    - Not caught: 3.33
 
-14. Dismissal #1 method (7-way betting). Innings #1 (7 outcomes)
+9. Dismissal #1 method (7-way betting). Innings #1 (7 outcomes)
    - Bowled: 5.20
    - LBW: 12.00
    - Run out: 15.00
@@ -117,15 +88,11 @@ Total Markets: 25
    - Fielder Catch: 1.37
    - Keeper Catch: 7.00
 
-15. England Dismissal #1 method (2-way betting). Innings #1 (2 outcomes)
+10. West Indies Dismissal #1 method (2-way betting). Innings #1 (2 outcomes)
    - Caught: 1.30
    - Not caught: 3.33
 
-16. West Indies Dismissal #1 method (2-way betting). Innings #1 (2 outcomes)
-   - Caught: 1.30
-   - Not caught: 3.33
-
-17. England Dismissal #1 method (6-way betting). Innings #1 (6 outcomes)
+11. West Indies Dismissal #1 method (6-way betting). Innings #1 (6 outcomes)
    - Caught: 1.30
    - Bowled: 5.20
    - LBW: 12.00
@@ -133,43 +100,29 @@ Total Markets: 25
    - Stumped: 25.00
    - Other: 201.00
 
-18. West Indies Dismissal #1 method (6-way betting). Innings #1 (6 outcomes)
-   - Caught: 1.30
-   - Bowled: 5.20
-   - LBW: 12.00
-   - Run out: 15.00
-   - Stumped: 25.00
-   - Other: 201.00
+12. West Indies total runs before dismissal #1. Innings #1 (2 outcomes)
+   - Over 23.5: 1.87
+   - Under 23.5: 1.87
 
-19. England total runs before dismissal #1. Innings #1 (2 outcomes)
-   - Over 21.5: 1.87
-   - Under 21.5: 1.87
-
-20. West Indies total runs before dismissal #1. Innings #1 (2 outcomes)
-   - Over 19.5: 1.87
-   - Under 19.5: 1.87
-
-21. The best result of the first partnership (3 outcomes)
+13. The best result of the first partnership (3 outcomes)
    - England: 1.74
    - Draw: 30.00
    - West Indies: 2.10
 
-22. Individual total runs. Innings #1 (6 outcomes)
-   - Over 24.5: 1.85
-   - Under 24.5: 1.85
-   - Over 21.5: 1.77
-   - Under 21.5: 1.94
+14. Individual total runs. Innings #1 (4 outcomes)
+   - Over 21.5: 1.85
+   - Under 21.5: 1.85
    - Over 20.5: 1.85
    - Under 20.5: 1.85
 
-23. Total wickets (2 outcomes)
-   - Under: 1.94
-   - Under: 1.77
+15. Total wickets (2 outcomes)
+   - Under: 1.67
+   - Under: 2.07
 
-24. Total ducks (2 outcomes)
+16. Total ducks (2 outcomes)
    - Under: 1.43
    - Under: 2.70
 
-25. Tied match (2 outcomes)
+17. Tied match (2 outcomes)
    - Yes: 21.00
    - No: 1.01
