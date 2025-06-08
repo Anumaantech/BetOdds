@@ -24,11 +24,4 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-    dockerCommand: npm run concurrent-monitor
-
-databases:
-  # A PostgreSQL database (or MongoDB, etc.)
-  - name: your-database-name # Replace with your database name
-    databaseName: your_db_name # Replace with your actual database name
-    user: your_db_user # Replace with your actual database user
-    plan: free # Or your desired plan 
+    dockerCommand: npm run concurrent-monitor 
