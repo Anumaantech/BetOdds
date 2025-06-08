@@ -71,4 +71,6 @@ EXPOSE 3000
 
 # Define the command to run your app
 # This will be overridden by the startCommand in render.yaml
-CMD ["npm", "run", "cricket-api"] 
+CMD ["npm", "run", "cricket-api"]
+
+# Trigger new deployment on Railway 
