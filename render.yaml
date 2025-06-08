@@ -2,10 +2,8 @@ services:
   # Main monitoring system service
   - type: web
     name: betting-monitor
-    env: node
+    env: docker
     plan: starter
-    buildCommand: npm install
-    startCommand: npm run concurrent-monitor
     envVars:
       - key: NODE_ENV
         value: production
