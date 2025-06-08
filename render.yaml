@@ -23,10 +23,9 @@ services:
   # Cricket API service  
   - type: web
     name: cricket-api
-    env: node
+    env: docker
     plan: starter
-    buildCommand: npm install
-    startCommand: npm run cricket-api
+    dockerfilePath: ./Dockerfile.cricket-api
     envVars:
       - key: NODE_ENV
         value: production
