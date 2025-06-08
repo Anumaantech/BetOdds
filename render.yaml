@@ -14,13 +14,13 @@ services:
         value: 3000
     dockerCommand: npm run cricket-api
 
-  # A background worker for the monitoring process
+  # A web service for the monitoring process
   - type: worker
     name: concurrent-monitor
     env: docker
     repo: https://github.com/Anumaantech/BetOdds.git # Replace with your repository URL
     dockerfilePath: ./Dockerfile
-    plan: starter # Or your desired plan
+    plan: free # Or your desired plan
     envVars:
       - key: NODE_ENV
         value: production
