@@ -1,55 +1,17 @@
-version: '3.8'
+version: '3'
 
 services:
-  # Main monitoring system
-  betting-monitor:
+  api:
     build: .
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3000
-      - ENABLE_NOTIFICATIONS=false
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/cricket_data?authSource=admin
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
-      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
     restart: unless-stopped
     volumes:
       - data:/app/data
-      - ./output:/app/output
-    command: npm run concurrent-monitor
-    depends_on:
-      - mongodb
-
-  # Cricket API service
-  cricket-api:
-    build: .
-    ports:
-      - "3005:3005"
-    environment:
-      - NODE_ENV=development
-      - PORT=3005
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/cricket_data?authSource=admin
-    restart: unless-stopped
-    volumes:
-      - data:/app/data
-    command: npm run cricket-api
-    depends_on:
-      - mongodb
-
-  # MongoDB database (for local development)
-  mongodb:
-    image: mongo:7.0
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
-      - MONGO_INITDB_DATABASE=cricket_data
-    volumes:
-      - mongodb_data:/data/db
-    restart: unless-stopped
+    command: npm run api
 
 volumes:
-  data:
-  mongodb_data: 
+  data: 

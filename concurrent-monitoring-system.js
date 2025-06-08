@@ -12,7 +12,7 @@ app.use(express.static('public')); // Serve admin interface
 
 // Configuration
 const config = {
-  apiPort: process.env.PORT || process.env.API_PORT || 3000,
+  apiPort: process.env.API_PORT || 3000,
   delayBetweenUpdates: 1000,
   outputDir: 'output',
   configFile: 'urls-config.json',

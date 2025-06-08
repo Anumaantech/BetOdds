@@ -1,6 +1,6 @@
 FROM node:18-slim
 
-# Install dependencies required for Puppeteer and general utilities
+# Install dependencies required for Puppeteer
 RUN apt-get update && apt-get install -y \
     gconf-service \
     libasound2 \
@@ -34,7 +34,6 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     xdg-utils \
     wget \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -44,34 +43,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --production
+RUN npm install
 
 # Copy application code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p output public
+# Expose port for API
+EXPOSE 3005
 
-# Set environment variables for production
-ENV NODE_ENV=production
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
-
-# Install Google Chrome for Puppeteer (updated method)
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
-
-# Verify Chrome installation
-RUN google-chrome --version
-
-# Expose ports
-EXPOSE 3000 3005
-
-# Default command - can be overridden by Render
-CMD ["npm", "run", "production"] 
+# Command to start the API server
+CMD ["npm", "run", "cricket-api"] 

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "A tool to extract betting data from 1xbet cricket matches",
   "main": "scraper.js",
-    "scripts": {
+  "scripts": {
     "start": "node scraper.js",
     "api": "node api.js",
     "client": "node client.js",
@@ -18,7 +18,7 @@
     "process": "node unified-process.js",
     "monitor": "node continuous-process.js",
     "monitor-dashboard": "node continuous-dashboard.js",
-    "visual-convert": "node convert_to_events.js", 
+    "visual-convert": "node convert_to_events.js",
     "test-improvements": "node test-ai-improvements.js",
     "enhanced-monitor": "node enhanced-monitoring-system.js",
     "concurrent-monitor": "node concurrent-monitoring-system.js",
@@ -27,13 +27,7 @@
     "test-unified": "node test-unified-process.js",
     "reset-state": "node reset-monitoring-state.js",
     "test-naming": "node test-collection-naming.js",
-    "cricket-api": "node simple-cricket-api.js",
-    "production": "npm run concurrent-monitor",
-    "dev": "npm run concurrent-monitor",
-    "verify-deployment": "node verify-deployment.js",
-    "verify-local": "node verify-deployment.js --local",
-    "dev-monitor": "PORT=3000 npm run concurrent-monitor",
-    "dev-api": "PORT=3005 npm run cricket-api"
+    "cricket-api": "node simple-cricket-api.js"
   },
   "dependencies": {
     "axios": "^1.6.2",
