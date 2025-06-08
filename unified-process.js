@@ -4,6 +4,7 @@ const path = require('path');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
+const UserAgent = require('user-agents');
 const { JSDOM } = require('jsdom');
 const dbUtils = require('./db-utils'); // Added DB Utils
 
@@ -67,8 +68,9 @@ async function extractData() {
 
       const page = await browser.newPage();
       
-      // Set realistic browser settings
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+      // Set realistic browser settings with a random user agent
+      const userAgent = new UserAgent();
+      await page.setUserAgent(userAgent.toString());
       await page.setViewport({ width: 1366, height: 768 });
       
       // Set headers
