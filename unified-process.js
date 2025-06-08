@@ -1,7 +1,9 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 const { JSDOM } = require('jsdom');
 const dbUtils = require('./db-utils'); // Added DB Utils
 
