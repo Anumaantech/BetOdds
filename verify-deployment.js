@@ -8,10 +8,12 @@ const CONFIG = {
   localTesting: process.env.LOCAL_TEST === 'true'
 };
 
-// For local testing
+// For local testing - use environment PORT if available, fallback to defaults
 if (CONFIG.localTesting) {
-  CONFIG.monitoringService = 'http://localhost:3000';
-  CONFIG.cricketApi = 'http://localhost:3005';
+  const monitorPort = process.env.PORT || 3000;
+  const cricketPort = process.env.CRICKET_PORT || 3005;
+  CONFIG.monitoringService = `http://localhost:${monitorPort}`;
+  CONFIG.cricketApi = `http://localhost:${cricketPort}`;
 }
 
 console.log('🔍 Verifying Deployment...');

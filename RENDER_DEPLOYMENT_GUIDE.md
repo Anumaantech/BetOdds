@@ -50,32 +50,34 @@ Using the `render.yaml` file for automatic service deployment:
 
 ## 🔑 Environment Variables
 
-### For Monitoring Service (betting-monitor):
+### For Both Services (automatically handled by render.yaml):
 ```
 NODE_ENV=production
-API_PORT=3000
 ENABLE_NOTIFICATIONS=false
-MONGODB_URI=your_mongodb_connection_string
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ```
 
-### For Cricket API Service (cricket-api):
-```
-NODE_ENV=production
-PORT=3005
-MONGODB_URI=your_mongodb_connection_string
-```
+**Important Notes:**
+- **PORT**: Render automatically sets this for each service (you don't need to configure it)
+- **MONGODB_URI**: Automatically injected from database using `fromDatabase` in render.yaml
+- **No hardcoded ports**: Each service uses `process.env.PORT` for flexibility
 
 ## 🗄️ Database Setup
 
-### Option 1: MongoDB Atlas (Recommended)
+### Using render.yaml (Recommended - Automatic Setup)
+The `render.yaml` file automatically creates a MongoDB database and injects the connection string:
+- Creates `cricket-data-db` database service
+- Automatically sets `MONGODB_URI` for both services using `fromDatabase`
+- No manual configuration needed
+
+### Alternative: External MongoDB (MongoDB Atlas)
+If you prefer using MongoDB Atlas:
 1. Create account at [mongodb.com](https://www.mongodb.com/cloud/atlas)
 2. Create a new cluster
 3. Get connection string
-4. Add to both services as `MONGODB_URI`
-
-### Option 2: Render Database Service
-1. In Render Dashboard, click "New" → "PostgreSQL" (if you want to switch to PostgreSQL)
-2. Or use the `render.yaml` configuration which includes MongoDB setup
+4. Remove the `fromDatabase` section from `render.yaml`
+5. Add `MONGODB_URI` environment variable manually to both services
 
 ## 📡 Service URLs
 
