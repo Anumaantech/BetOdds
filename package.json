@@ -31,7 +31,9 @@
     "production": "npm run concurrent-monitor",
     "dev": "npm run concurrent-monitor",
     "verify-deployment": "node verify-deployment.js",
-    "verify-local": "node verify-deployment.js --local"
+    "verify-local": "node verify-deployment.js --local",
+    "dev-monitor": "PORT=3000 npm run concurrent-monitor",
+    "dev-api": "PORT=3005 npm run cricket-api"
   },
   "dependencies": {
     "axios": "^1.6.2",
