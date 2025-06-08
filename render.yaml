@@ -12,8 +12,6 @@ services:
         value: production
       - key: PORT
         value: 3000
-      - key: MONGODB_URI
-        fromSecret: true
     dockerCommand: npm run cricket-api
 
   # A background worker for the monitoring process
@@ -26,8 +24,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: MONGODB_URI
-        fromSecret: true
     dockerCommand: npm run concurrent-monitor
 
 databases:
