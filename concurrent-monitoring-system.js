@@ -290,7 +290,8 @@ class ConcurrentURLManager {
 
         const child = spawn('node', ['unified-process.js', urlConfig.url, urlSpecificOutputDir], {
           stdio: 'pipe',
-          shell: true
+          shell: true,
+          env: process.env
         });
 
         let output = '';
