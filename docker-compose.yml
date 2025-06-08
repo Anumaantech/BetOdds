@@ -1,17 +1,51 @@
-version: '3'
+version: '3.8'
 
 services:
-  api:
+  # Main monitoring system
+  betting-monitor:
     build: .
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - API_PORT=3000
+      - ENABLE_NOTIFICATIONS=false
     restart: unless-stopped
     volumes:
       - data:/app/data
-    command: npm run api
+      - ./output:/app/output
+    command: npm run concurrent-monitor
+    depends_on:
+      - mongodb
+
+  # Cricket API service
+  cricket-api:
+    build: .
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=production
+      - PORT=3005
+    restart: unless-stopped
+    volumes:
+      - data:/app/data
+    command: npm run cricket-api
+    depends_on:
+      - mongodb
+
+  # MongoDB database (for local development)
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=cricket_data
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
 
 volumes:
-  data: 
+  data:
+  mongodb_data: 

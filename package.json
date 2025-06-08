@@ -3,10 +3,9 @@
   "name": "1xbet-data-extractor",
   "version": "1.0.0",
   "description": "A tool to extract betting data from 1xbet cricket matches",
-  "main": "enhanced-monitoring-system.js",
-  "scripts": {
-    "start": "node enhanced-monitoring-system.js",
-    "dev": "nodemon enhanced-monitoring-system.js",
+  "main": "scraper.js",
+    "scripts": {
+    "start": "node scraper.js",
     "api": "node api.js",
     "client": "node client.js",
     "set-url": "node set-url.js",
@@ -19,39 +18,30 @@
     "process": "node unified-process.js",
     "monitor": "node continuous-process.js",
     "monitor-dashboard": "node continuous-dashboard.js",
-    "visual-convert": "node convert_to_events.js",
+    "visual-convert": "node convert_to_events.js", 
     "test-improvements": "node test-ai-improvements.js",
     "enhanced-monitor": "node enhanced-monitoring-system.js",
+    "concurrent-monitor": "node concurrent-monitoring-system.js",
+    "test-performance": "node test-concurrent-performance.js",
     "migrate-collections": "node migrate-collections.js",
     "test-unified": "node test-unified-process.js",
     "reset-state": "node reset-monitoring-state.js",
-    "test-naming": "node test-collection-naming.js"
+    "test-naming": "node test-collection-naming.js",
+    "cricket-api": "node simple-cricket-api.js",
+    "production": "npm run concurrent-monitor",
+    "dev": "npm run concurrent-monitor",
+    "verify-deployment": "node verify-deployment.js",
+    "verify-local": "node verify-deployment.js --local"
   },
   "dependencies": {
     "axios": "^1.6.2",
-    "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.18.2",
-    "helmet": "^7.1.0",
     "jsdom": "^26.1.0",
     "mongodb": "^6.8.0",
-    "mongoose": "^8.0.3",
-    "puppeteer": "^24.10.0",
-    
+    "puppeteer": "^21.5.0",
     "uuid": "^9.0.1",
     "ws": "^8.18.2"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
-  },
-  "keywords": [
-    "betting",
-    "odds",
-    "cricket",
-    "tennis",
-    "basketball"
-  ],
-  "author": "",
-  "license": "ISC"
+  }
 }

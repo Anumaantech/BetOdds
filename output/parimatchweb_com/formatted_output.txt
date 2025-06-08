@@ -1,0 +1,51 @@
+
+=== BETTING MARKETS SUMMARY ===
+Source: Parimatch Global
+Match: Japan (w) - Hong Kong (w) Betting Odds. Cricket. Women. Japan Sano International Trophy. National teams. 08.06.2025 on Parimatch
+Event ID: 13527417
+Timestamp: 2025-06-08T07:53:54.084Z
+
+--- TEAM SCORES ---
+
+Total Markets: 8
+===============================
+
+1. Winner (2 outcomes)
+   - Japan (w): 2.08
+   - Hong Kong (w): 1.69
+
+2. Hong Kong (w). Exact runs off delivery 6. Innings #1.Over #11 (6 outcomes)
+   - 0 run(-s): 1.66
+   - 1 run(-s): 2.70
+   - 2 run(-s): 10.00
+   - 3 run(-s): 65.00
+   - 4 run(-s): 16.50
+   - 5 and more runs: 80.00
+
+3. Hong Kong (w) runs total in delivery 6. Innings #1.Over #11 (6 outcomes)
+   - Over 0.5: 1.95
+   - Under 0.5: 1.66
+   - Over 1.5: 6.40
+   - Under 1.5: 1.04
+   - Over 3.5: 16.00
+   - Under 3.5: 1.02
+
+4. Hong Kong (w) total runs. Innings #1.Over #12 (2 outcomes)
+   - Over 3.5: 1.87
+   - Under 3.5: 1.79
+
+5. Hong Kong (w) Runs total. Even/Odd. Innings #1.Over #12 (2 outcomes)
+   - Even: 1.90
+   - Odd: 1.90
+
+6. Hong Kong (w) Runs total before dismissal #5. Even/Odd. Innings #1 (2 outcomes)
+   - Even: 1.94
+   - Odd: 1.86
+
+7. Kary Chan Runs total. Innings #1 (2 outcomes)
+   - Even: 1.94
+   - Odd: 1.86
+
+8. Hiu Ying Cheung Runs total. Innings #1 (2 outcomes)
+   - Even: 1.94
+   - Odd: 1.86

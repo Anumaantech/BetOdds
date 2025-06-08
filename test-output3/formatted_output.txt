@@ -1,0 +1,87 @@
+
+=== BETTING MARKETS SUMMARY ===
+Source: Parimatch Global
+Match: Mumbai South Central Maratha Royals - NaMo Bandra Blasters Betting Odds. Cricket. T20 Mumbai League. India. 08.06.2025 on Parimatch
+Total Markets: 16
+===============================
+
+1. Winner (2 outcomes)
+   - Mumbai South Central Maratha Royals: 13.00
+   - NaMo Bandra Blasters: 1.02
+
+2. NaMo Bandra Blasters. Exact runs off delivery 1. Innings #1.Over #8 (6 outcomes)
+   - 0 run(-s): 3.00
+   - 1 run(-s): 1.89
+   - 2 run(-s): 14.00
+   - 3 run(-s): 75.00
+   - 4 run(-s): 10.50
+   - 5 and more runs: 9.20
+
+3. NaMo Bandra Blasters runs total in delivery 1. Innings #1.Over #8 (6 outcomes)
+   - Over 0.5: 1.29
+   - Under 0.5: 3.00
+   - Over 1.5: 3.95
+   - Under 1.5: 1.18
+   - Over 3.5: 5.20
+   - Under 3.5: 1.09
+
+4. NaMo Bandra Blasters total runs. Innings #1 (2 outcomes)
+   - Over 151.5: 1.62
+   - Under 151.5: 2.14
+
+5. NaMo Bandra Blasters total runs. Innings #1.Over #8 (6 outcomes)
+   - Over 6.5: 1.51
+   - Under 6.5: 2.38
+   - Over 7.5: 1.76
+   - Under 7.5: 1.94
+   - Over 8.5: 2.14
+   - Under 8.5: 1.62
+
+6. NaMo Bandra Blasters Runs total. Even/Odd. Innings #1.Over #8 (2 outcomes)
+   - Even: 1.90
+   - Odd: 1.90
+
+7. NaMo Bandra Blasters Dismissal #1 method (2-way betting). Innings #1 (2 outcomes)
+   - Caught: 1.40
+   - Not caught: 2.58
+
+8. NaMo Bandra Blasters Dismissal #1 method (6-way betting). Innings #1 (5 outcomes)
+   - Caught: 1.40
+   - Bowled: 4.90
+   - LBW: 10.00
+   - Run out: 16.00
+   - Stumped: 18.50
+
+9. NaMo Bandra Blasters total runs before dismissal #1. Innings #1 (2 outcomes)
+   - Over 105.5: 1.83
+   - Under 105.5: 1.83
+
+10. NaMo Bandra Blasters Runs total before dismissal #1. Even/Odd. Innings #1 (2 outcomes)
+   - Even: 1.98
+   - Odd: 1.83
+
+11. Individual total runs. Innings #1 (4 outcomes)
+   - Over 88.5: 1.83
+   - Under 88.5: 1.83
+   - Over 38.5: 1.83
+   - Under 38.5: 1.83
+
+12. Suved Parkar Runs total. Innings #1 (2 outcomes)
+   - Even: 1.83
+   - Odd: 1.98
+
+13. Vikrant Auti Runs total. Innings #1 (2 outcomes)
+   - Even: 1.83
+   - Odd: 1.98
+
+14. Suved Parkar catch out. Innings #1 (2 outcomes)
+   - Caught: 1.36
+   - Not caught: 2.72
+
+15. Vikrant Auti catch out. Innings #1 (2 outcomes)
+   - Caught: 1.41
+   - Not caught: 2.52
+
+16. NaMo Bandra Blasters dismissal. Innings #1.Over #8 (2 outcomes)
+   - Yes: 3.60
+   - No: 1.21

@@ -1,6 +1,6 @@
 FROM node:18-slim
 
-# Install dependencies required for Puppeteer
+# Install dependencies required for Puppeteer and general utilities
 RUN apt-get update && apt-get install -y \
     gconf-service \
     libasound2 \
@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     xdg-utils \
     wget \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -43,13 +44,28 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --production
 
 # Copy application code
 COPY . .
 
-# Expose port for API
-EXPOSE 3000
+# Create necessary directories
+RUN mkdir -p output public
 
-# Command to start the API server
-CMD ["npm", "run", "api"] 
+# Set environment variables for production
+ENV NODE_ENV=production
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
+# Install Google Chrome for Puppeteer
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+
+# Expose ports
+EXPOSE 3000 3005
+
+# Default command - can be overridden by Render
+CMD ["npm", "run", "production"] 

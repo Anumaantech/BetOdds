@@ -129,7 +129,7 @@ async function extractData() {
     
     // Wait for markets to update after tab selection
     console.log('Waiting for markets to update...');
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
     
     // Find and expand the Winner market specifically
     console.log('Looking for Winner market...');
@@ -182,7 +182,7 @@ async function extractData() {
     });
     
     // Wait for Winner market to load if found
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Expand all collapsed markets
     console.log('Expanding all collapsed markets...');
@@ -213,7 +213,7 @@ async function extractData() {
     
     // Wait for all expanded markets to load
     console.log('Waiting for expanded markets to load...');
-    await page.waitForTimeout(5000);
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
     // Extract the HTML content
     console.log('Extracting data...');

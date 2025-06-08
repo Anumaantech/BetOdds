@@ -91,7 +91,7 @@ async function extractData() {
       console.log(`   ✓ Page loaded: ${pageTitle}`);
       
       // Wait for content to load
-      await page.waitForTimeout(5000);
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
       // Try to find betting markets
       const possibleSelectors = [
@@ -652,18 +652,6 @@ async function convertToBettingEvents(summaryData) {
     const matchName = (summaryData.match || '').toLowerCase();
     const marketTitles = summaryData.markets.map(m => m.title.toLowerCase());
     
-    // Soccer/Football indicators
-    const soccerKeywords = [
-      'soccer', 'football', 'fifa', 'uefa', 'premier league', 'la liga', 'serie a',
-      'bundesliga', 'ligue 1', 'champions league', 'europa league', 'world cup',
-      'euro 2024', 'epl', 'mls', 'copa america', 'fa cup', 'carabao cup'
-    ];
-    const soccerMarkets = [
-      'full-time result', 'match result', 'both teams to score', 'total goals',
-      'first goalscorer', 'anytime goalscorer', 'correct score', 'half time result',
-      'double chance', 'over/under 2.5 goals', 'asian handicap'
-    ];
-    
     // Basketball indicators
     const basketballKeywords = [
       'basketball', 'nba', 'nbl', 'ncaa', 'euroleague', 'wnba', 
@@ -696,14 +684,6 @@ async function convertToBettingEvents(summaryData) {
     
     // Check match name first (most reliable)
     // Use word boundaries to avoid false positives (like "aba" matching "Sabalenka")
-    const foundSoccerKeyword = soccerKeywords.find(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'i');
-      return regex.test(matchName);
-    });
-    if (foundSoccerKeyword) {
-      return 'soccer';
-    }
-    
     const foundBasketballKeyword = basketballKeywords.find(keyword => {
       const regex = new RegExp(`\\b${keyword}\\b`, 'i');
       return regex.test(matchName);
@@ -729,8 +709,6 @@ async function convertToBettingEvents(summaryData) {
     }
     
     // Check market patterns as secondary indicator with improved logic
-    const soccerMarketCount = marketTitles.filter(title => 
-      soccerMarkets.some(market => title === market || title.includes(market))).length;
     const basketballMarketCount = marketTitles.filter(title => 
       basketballMarkets.some(market => title === market || title.includes(market))).length;
     const tennisMarketCount = marketTitles.filter(title => 
@@ -741,9 +719,6 @@ async function convertToBettingEvents(summaryData) {
 
     
     // Return sport with highest market pattern matches (requires at least 2 matches to be confident)
-    if (soccerMarketCount >= 2 && soccerMarketCount > basketballMarketCount && soccerMarketCount > tennisMarketCount && soccerMarketCount > cricketMarketCount) {
-      return 'soccer';
-    }
     if (basketballMarketCount >= 2 && basketballMarketCount > tennisMarketCount && basketballMarketCount > cricketMarketCount) {
       return 'basketball';
     }
@@ -754,15 +729,12 @@ async function convertToBettingEvents(summaryData) {
       return 'cricket';
     }
     
-    // If no clear pattern, check for specific unique indicators
-    if (marketTitles.some(title => title.includes('both teams to score') || title.includes('total goals') || title.includes('anytime goalscorer'))) {
-      return 'soccer';
-    }
-    
+    // If no clear pattern, check for specific unique tennis indicators
     if (marketTitles.some(title => title.includes('handicap by sets') || title.includes('to win either set') || title.includes('winner. set'))) {
       return 'tennis';
     }
     
+    // If no clear pattern, check for specific unique basketball indicators  
     if (marketTitles.some(title => title.includes('to win including overtime') || title.includes('3-way betting (regular time)'))) {
       return 'basketball';
     }
@@ -778,7 +750,6 @@ async function convertToBettingEvents(summaryData) {
   // Helper function to get correct terminology based on sport
   function getHandicapTerminology(sport) {
     switch(sport) {
-      case 'soccer': return { unit: 'goals', type: 'handicap_goals' };
       case 'basketball': return { unit: 'points', type: 'handicap_points' };
       case 'tennis': return { unit: 'games', type: 'handicap_games' };
       case 'cricket': return { unit: 'runs', type: 'handicap_runs' };
@@ -2100,54 +2071,16 @@ async function convertToBettingEvents(summaryData) {
   fs.writeFileSync(outputFiles.bettingEvents, JSON.stringify(eventDataForFile, null, 2));
   console.log(`   ✓ Converted and grouped ${totalEventsCount} unique betting events.`);
 
-  // --- Database Operations (MongoDB Atlas) ---
-  if (process.env.MONGODB_URI || process.env.MONGO_URI) {
-    try {
-      console.log('   💾 Syncing events with MongoDB Atlas...');
-      
-      // Initialize database connection if not already connected
-      if (!global.dbConnected) {
-        const connectDB = require('./config/database');
-        await connectDB();
-        global.dbConnected = true;
-      }
-      
-      const eventService = require('./services/eventService');
-      
-      // Prepare match information
-      const matchInfo = {
-        matchName: summaryData.match || 'Unknown Match',
-        matchId: summaryData.event_id || `match_${Date.now()}`,
-        source: summaryData.source || '1xbet'
-      };
-      
-      // Convert grouped events to flat array for database saving
-      const eventsForDB = [];
-      Object.entries(groupedEvents).forEach(([groupName, groupArray]) => {
-        groupArray.forEach(eventObj => {
-          eventsForDB.push({
-            ...eventObj,
-            group: groupName
-          });
-        });
-      });
-      
-      // Save events to MongoDB Atlas
-      const saveResult = await eventService.saveEvents(eventsForDB, matchInfo, detectedSport);
-      
-      if (saveResult.success) {
-        console.log(`   ✅ MongoDB Atlas sync complete: ${saveResult.saved} saved, ${saveResult.updated} updated, ${saveResult.errors} errors`);
-      } else {
-        console.log(`   ⚠️ MongoDB Atlas sync completed with issues: ${saveResult.error}`);
-      }
-      
-    } catch (error) {
-      console.error('   ❌ MongoDB Atlas sync failed:', error.message);
-      console.log('   📝 Events saved to local file only');
-    }
-  } else {
-    console.log('   ⚠️ No MongoDB URI configured - events saved to local file only');
+  // --- Database Operations ---
+  console.log('   💾 Syncing events with MongoDB...');
+  // Use the new flatEventsForDB for database operations and pass match details for team-based collection naming
+  const matchDetails = eventDataForFile.match_details;
+  
+  for (const currentEvent of flatEventsForDB) {
+      await dbUtils.upsertEvent(currentEvent, config.url, matchDetails);
   }
+  await dbUtils.markOldEventsAsNotLive(flatEventsForDB, config.url, matchDetails);
+  console.log(`   ✓ MongoDB sync complete.`);
   // --- End Database Operations ---
   
   return eventDataForFile; // Return the new grouped structure
@@ -2156,6 +2089,8 @@ async function convertToBettingEvents(summaryData) {
 // Main execution
 async function main() {
   try {
+    await dbUtils.connectDB(); // Connect to DB at the start
+
     // Step 1: Extract data
     const extractedData = await extractData();
     
@@ -2205,6 +2140,9 @@ async function main() {
     // Ensure error is logged, and then rethrow or handle as appropriate
     // Depending on desired behavior, process.exit(1) might be here or after finally block
     throw error; // Re-throw to be caught by outer layer or process exit handler
+  } finally {
+    await dbUtils.closeDB(); // Ensure DB connection is closed
+    // process.exitCode = 0; // Indicate successful completion if no error was thrown before finally
   }
 }
 

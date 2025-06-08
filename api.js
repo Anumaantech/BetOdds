@@ -1,9 +1,10 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
+const dbUtils = require('./db-utils');
 
 const app = express();
-const PORT = process.env.PORT || 3005;
+const PORT = 3005;
 
 // Enable CORS
 app.use(cors());
@@ -33,6 +34,189 @@ async function closeBrowser() {
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Helper function to get all cricket collections from database
+async function getAllCricketCollections() {
+  try {
+    const db = await dbUtils.connectDB();
+    const collections = await db.listCollections().toArray();
+    
+    // Filter for cricket-related collections (team-based collections and url-based ones that might contain cricket data)
+    const cricketCollections = collections.filter(collection => {
+      const name = collection.name;
+      // Team-based collections typically have format: team1_team2_date
+      // URL-based collections have 'url_' prefix
+      return name.includes('_') && !name.startsWith('system.') && name !== 'admin';
+    });
+    
+    return cricketCollections.map(collection => ({
+      id: collection.name,
+      name: collection.name
+    }));
+  } catch (error) {
+    console.error('Error fetching cricket collections:', error);
+    throw error;
+  }
+}
+
+// Helper function to get events from a specific collection
+async function getEventsFromCollection(collectionId) {
+  try {
+    const db = await dbUtils.connectDB();
+    const collection = db.collection(collectionId);
+    
+    // Get all events from the collection, sorted by last_seen_at (most recent first)
+    const events = await collection.find({})
+      .sort({ last_seen_at: -1 })
+      .toArray();
+    
+    return events;
+  } catch (error) {
+    console.error(`Error fetching events from collection ${collectionId}:`, error);
+    throw error;
+  }
+}
+
+// GET /api/sport/cricket - Get all cricket collections/IDs with basic info
+app.get('/api/sport/cricket', async (req, res) => {
+  try {
+    const collections = await getAllCricketCollections();
+    
+    // Get basic info for each collection
+    const collectionsWithInfo = await Promise.all(
+      collections.map(async (collection) => {
+        try {
+          const db = await dbUtils.connectDB();
+          const coll = db.collection(collection.id);
+          
+          // Get count of total events and live events
+          const totalEvents = await coll.countDocuments();
+          const liveEvents = await coll.countDocuments({ live: true });
+          
+          // Get latest event to extract match info
+          const latestEvent = await coll.findOne(
+            {},
+            { sort: { last_seen_at: -1 } }
+          );
+          
+          return {
+            id: collection.id,
+            name: collection.name,
+            totalEvents,
+            liveEvents,
+            lastActivity: latestEvent?.last_seen_at || null,
+            matchInfo: latestEvent ? {
+              sourceUrl: latestEvent.source_url,
+              collectionName: latestEvent.collection_name
+            } : null
+          };
+        } catch (error) {
+          console.error(`Error getting info for collection ${collection.id}:`, error);
+          return {
+            id: collection.id,
+            name: collection.name,
+            totalEvents: 0,
+            liveEvents: 0,
+            lastActivity: null,
+            matchInfo: null,
+            error: error.message
+          };
+        }
+      })
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        totalCollections: collectionsWithInfo.length,
+        collections: collectionsWithInfo
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in GET /api/sport/cricket:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch cricket collections'
+    });
+  }
+});
+
+// GET /api/sport/cricket/:id - Get specific cricket events from a collection
+app.get('/api/sport/cricket/:id', async (req, res) => {
+  const { id } = req.params;
+  const { live, limit } = req.query;
+  
+  try {
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Collection ID is required'
+      });
+    }
+    
+    const db = await dbUtils.connectDB();
+    const collection = db.collection(id);
+    
+    // Check if collection exists
+    const collectionExists = await db.listCollections({ name: id }).toArray();
+    if (collectionExists.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: `Collection with ID '${id}' not found`
+      });
+    }
+    
+    // Build query based on parameters
+    let query = {};
+    if (live === 'true') {
+      query.live = true;
+    }
+    
+    // Get events with optional limit
+    const eventsQuery = collection.find(query).sort({ last_seen_at: -1 });
+    if (limit && !isNaN(parseInt(limit))) {
+      eventsQuery.limit(parseInt(limit));
+    }
+    
+    const events = await eventsQuery.toArray();
+    
+    // Get collection stats
+    const totalEvents = await collection.countDocuments();
+    const liveEvents = await collection.countDocuments({ live: true });
+    
+    res.json({
+      success: true,
+      data: {
+        collectionId: id,
+        totalEvents,
+        liveEvents,
+        returnedEvents: events.length,
+        events: events.map(event => ({
+          id: event._id,
+          eventQuestion: event.event_question,
+          options: event.options,
+          live: event.live,
+          groupName: event.group_name,
+          details: event.details || {},
+          lastSeenAt: event.last_seen_at,
+          lastUpdatedAt: event.last_updated_at,
+          firstSeenAt: event.first_seen_at,
+          originalMarketTitle: event.original_market_title,
+          sourceUrl: event.source_url,
+          collectionName: event.collection_name
+        }))
+      }
+    });
+    
+  } catch (error) {
+    console.error(`Error in GET /api/sport/cricket/${id}:`, error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch cricket events'
+    });
+  }
 });
 
 // Helper function to extract outcome name based on outcomeType
@@ -121,7 +305,7 @@ app.post('/extract', async (req, res) => {
     });
     
     // Wait for markets to update after tab selection
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Expand all collapsed markets if requested or for complete extraction
     if (expandAll || complete) {
@@ -167,7 +351,7 @@ app.post('/extract', async (req, res) => {
         
         // Wait for expanded markets to load
         console.log('Waiting for expanded markets to load...');
-        await page.waitForTimeout(5000);
+        await new Promise(resolve => setTimeout(resolve, 5000));
       } catch (error) {
         console.error('Error expanding markets:', error.message);
         // Continue anyway to try to extract what we can
@@ -755,7 +939,7 @@ app.post('/extract-complete', async (req, res) => {
     });
     
     // Wait for markets to update after tab selection
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Expand all collapsed markets
     await page.evaluate(() => {
@@ -774,7 +958,7 @@ app.post('/extract-complete', async (req, res) => {
     });
     
     // Wait for expanded markets to load
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Extract the complete DOM structure
     console.log('Extracting complete DOM structure...');
@@ -867,12 +1051,29 @@ app.post('/extract-complete', async (req, res) => {
 // Start server
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
-  await initBrowser();
+  
+  // Test MongoDB connection on startup
+  try {
+    await dbUtils.connectDB();
+    console.log('✓ MongoDB connection successful');
+  } catch (error) {
+    console.error('❌ MongoDB connection failed:', error.message);
+    console.log('Note: Cricket data endpoints will not work without MongoDB connection');
+  }
+  
+  console.log('Available endpoints:');
+  console.log('  GET  /health - Health check');
+  console.log('  GET  /api/sport/cricket - Get all cricket collections');
+  console.log('  GET  /api/sport/cricket/:id - Get events from specific collection');
+  console.log('  POST /extract - Extract betting data from URL');
+  console.log('  POST /extract-matches - Extract multiple matches');
+  console.log('  POST /extract-complete - Complete DOM extraction');
   
   // Clean shutdown
   process.on('SIGINT', async () => {
     console.log('Shutting down...');
     await closeBrowser();
+    await dbUtils.closeDB();
     process.exit(0);
   });
 });

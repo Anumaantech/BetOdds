@@ -17,13 +17,16 @@ const config = {
   outputDir: 'output',
   configFile: 'urls-config.json',
   enableNotifications: process.env.ENABLE_NOTIFICATIONS === 'true',
-  maxConcurrentUrls: 5 // Limit concurrent processing
+  maxConcurrentUrls: 10, // Increased for better performance
+  batchProcessingInterval: 1000 // Process all URLs every 1 second
 };
 
-// URL Management Class
-class URLManager {
+// URL Management Class with Concurrent Processing
+class ConcurrentURLManager {
   constructor() {
     this.urls = new Map();
+    this.isProcessing = false;
+    this.batchTimer = null;
     this.loadConfig();
   }
 
@@ -163,119 +166,49 @@ class URLManager {
 
     this.saveConfig();
   }
-}
 
-// Scheduler Class
-class Scheduler {
-  constructor(urlManager) {
-    this.urlManager = urlManager;
-    this.activeTimers = new Map();
-    this.batchTimer = null;
-    this.isBatchProcessing = false;
-  }
-
-  start() {
-    // Check every 10 seconds for URLs that need activation
-    setInterval(() => {
-      this.checkScheduledActivations();
-    }, 10000);
-
-    // Start immediate URLs after a brief delay to allow system initialization
-    setTimeout(() => {
-      console.log('🔍 Checking for URLs to activate...');
-      this.activateImmediateURLs();
-    }, 2000); // 2 second delay
-  }
-
-  checkScheduledActivations() {
-    const readyUrls = this.urlManager.getURLsByStatus('ready');
-    const now = new Date();
-
-    readyUrls.forEach(urlConfig => {
-      const startTime = new Date(urlConfig.startTime);
-      if (startTime <= now) {
-        this.activateURL(urlConfig.id);
-      }
-    });
-  }
-
-  activateImmediateURLs() {
-    const nowUrls = this.urlManager.getAllURLs().filter(url => 
-      url.startTime === 'now' && url.status === 'ready'
-    );
-    
-    nowUrls.forEach(urlConfig => {
-      this.activateURL(urlConfig.id);
-    });
-
-    // Also check if there are already active URLs that need batch processing
-    const activeUrls = this.urlManager.getURLsByStatus('active');
-    if (activeUrls.length > 0 && !this.batchTimer) {
-      this.startBatchProcessing();
+  // Start concurrent processing for all active URLs
+  startConcurrentProcessing() {
+    if (this.batchTimer) {
+      console.log('🔄 Concurrent processing already running');
+      return;
     }
-  }
 
-  activateURL(id) {
-    const urlConfig = this.urlManager.getURL(id);
-    if (!urlConfig || urlConfig.status === 'active') return;
-
-    console.log(`🚀 Activating URL: ${urlConfig.url}`);
-    urlConfig.status = 'active';
-    this.urlManager.saveConfig();
-
-    // Start continuous monitoring with concurrent processing
-    if (!this.batchTimer) {
-      this.startBatchProcessing();
-    }
-  }
-
-  deactivateURL(id) {
-    const urlConfig = this.urlManager.getURL(id);
-    if (!urlConfig) return;
-
-    console.log(`⏸️ Deactivating URL: ${urlConfig.url}`);
-    urlConfig.status = 'paused';
-    this.urlManager.saveConfig();
-
-    // Check if we need to stop batch processing
-    const activeUrls = this.urlManager.getURLsByStatus('active');
-    if (activeUrls.length === 0 && this.batchTimer) {
-      clearInterval(this.batchTimer);
-      this.batchTimer = null;
-      console.log('🛑 Stopped batch processing - no active URLs');
-    }
-  }
-
-  startBatchProcessing() {
-    console.log('🚀 Starting concurrent batch processing for all active URLs');
-    
-    // Use the minimum interval from all active URLs
-    const activeUrls = this.urlManager.getURLsByStatus('active');
-    const minInterval = Math.min(...activeUrls.map(url => url.interval || 1000));
+    console.log('🚀 Starting concurrent processing for all URLs');
     
     this.batchTimer = setInterval(async () => {
-      if (!this.isBatchProcessing) {
+      if (!this.isProcessing) {
         await this.processBatch();
       }
-    }, minInterval);
+    }, config.batchProcessingInterval);
   }
 
+  // Stop concurrent processing
+  stopConcurrentProcessing() {
+    if (this.batchTimer) {
+      clearInterval(this.batchTimer);
+      this.batchTimer = null;
+      console.log('🛑 Stopped concurrent processing');
+    }
+  }
+
+  // Process all active URLs concurrently
   async processBatch() {
-    if (this.isBatchProcessing) return;
+    if (this.isProcessing) return;
     
-    this.isBatchProcessing = true;
-    const activeUrls = this.urlManager.getURLsByStatus('active');
+    this.isProcessing = true;
+    const activeUrls = this.getURLsByStatus('active');
     
     if (activeUrls.length === 0) {
-      this.isBatchProcessing = false;
+      this.isProcessing = false;
       return;
     }
 
     const batchStartTime = new Date();
-    console.log(`\n🔄 Starting concurrent batch processing for ${activeUrls.length} URLs at ${batchStartTime.toLocaleTimeString()}`);
+    console.log(`\n🔄 Processing ${activeUrls.length} URLs concurrently at ${batchStartTime.toLocaleTimeString()}`);
     console.log('═══════════════════════════════════════════════════════════════');
 
-    // Process all URLs concurrently
+    // Process all URLs concurrently using Promise.all
     const processPromises = activeUrls
       .filter(urlConfig => !urlConfig.isProcessing)
       .map(urlConfig => this.processURL(urlConfig));
@@ -287,64 +220,144 @@ class Scheduler {
       const batchDuration = ((batchEndTime - batchStartTime) / 1000).toFixed(1);
       
       console.log(`\n🏁 ═══════════════════════════════════════════════════════════════`);
-      console.log(`   ⏱️  BATCH COMPLETED IN ${batchDuration} SECONDS`);
-      console.log(`   📊 Processed ${processPromises.length} URL(s) concurrently`);
-      console.log(`   🕐 Next batch in ${Math.min(...activeUrls.map(url => url.interval || 1000)) / 1000} second(s)...`);
+      console.log(`   ⚡ CONCURRENT BATCH COMPLETED IN ${batchDuration} SECONDS`);
+      console.log(`   📊 Processed ${processPromises.length} URL(s) simultaneously`);
+      console.log(`   🕐 Next batch in ${config.batchProcessingInterval / 1000} second(s)...`);
       console.log(`   ═══════════════════════════════════════════════════════════════`);
       
     } catch (error) {
       console.error(`❌ Batch processing error:`, error.message);
     } finally {
-      this.isBatchProcessing = false;
+      this.isProcessing = false;
     }
   }
 
+  // Process individual URL
   async processURL(urlConfig) {
     if (urlConfig.isProcessing) {
-      console.log(`   ⏭️ Skipping ${urlConfig.url} - already processing`);
       return;
     }
 
-    console.log(`\n🔄 [${urlConfig.url}] Starting processing cycle #${urlConfig.processCount + 1}`);
     urlConfig.isProcessing = true;
     urlConfig.processCount++;
-    this.urlManager.saveConfig(); // Save state immediately
+    
+    const urlStartTime = new Date();
+    console.log(`🔄 [${new URL(urlConfig.url).hostname}] Cycle #${urlConfig.processCount}`);
 
     try {
-      const result = await this.urlManager.runSingleProcess(urlConfig);
+      const result = await this.runSingleProcess(urlConfig);
       
       if (result.success) {
         const hasChanges = result.eventCount !== urlConfig.lastEventCount;
         
         if (hasChanges) {
           const difference = result.eventCount - urlConfig.lastEventCount;
-          console.log(`🔔 [${urlConfig.url}] Events changed by ${difference} (${urlConfig.lastEventCount} → ${result.eventCount})`);
+          console.log(`🔔 [${new URL(urlConfig.url).hostname}] Events: ${urlConfig.lastEventCount} → ${result.eventCount} (${difference > 0 ? '+' : ''}${difference})`);
           
           if (config.enableNotifications) {
-            this.showNotification(`Events changed by ${difference} for ${new URL(urlConfig.url).hostname}`);
+            this.showNotification(`[${new URL(urlConfig.url).hostname}] Events changed by ${difference}`);
           }
         } else {
-          console.log(`✨ [${urlConfig.url}] No changes detected (${result.eventCount} events)`);
+          console.log(`✨ [${new URL(urlConfig.url).hostname}] No changes (${result.eventCount} events)`);
         }
         
         urlConfig.lastEventCount = result.eventCount;
       } else {
-        console.error(`❌ [${urlConfig.url}] Processing failed: ${result.error}`);
-        // Don't stop monitoring on failure, just log and continue
+        console.error(`❌ [${new URL(urlConfig.url).hostname}] Failed: ${result.error}`);
       }
     } catch (error) {
-      console.error(`❌ [${urlConfig.url}] Exception during processing:`, error.message);
-      console.error(`   Stack trace:`, error.stack);
+      console.error(`❌ [${new URL(urlConfig.url).hostname}] Exception:`, error.message);
     } finally {
-      // Always reset processing state
+      const urlEndTime = new Date();
+      const urlDuration = ((urlEndTime - urlStartTime) / 1000).toFixed(1);
+      console.log(`✅ [${new URL(urlConfig.url).hostname}] Completed in ${urlDuration}s`);
+      
       urlConfig.isProcessing = false;
-      this.urlManager.saveConfig();
-      console.log(`✅ [${urlConfig.url}] Processing cycle completed\n`);
+      this.saveConfig();
     }
   }
 
+  // Run single process for URL
+  runSingleProcess(urlConfig) {
+    return new Promise((resolve, reject) => {
+      try {
+        const urlSpecificOutputDir = path.join(config.outputDir, 
+          new URL(urlConfig.url).hostname.replace(/[^a-zA-Z0-9]/g, '_'));
+        
+        if (!fs.existsSync(urlSpecificOutputDir)) {
+          fs.mkdirSync(urlSpecificOutputDir, { recursive: true });
+        }
+
+        const child = spawn('node', ['unified-process.js', urlConfig.url, urlSpecificOutputDir], {
+          stdio: 'pipe',
+          shell: true
+        });
+
+        let output = '';
+        let errorOutput = '';
+
+        // Set timeout to prevent hanging processes
+        const timeout = setTimeout(() => {
+          child.kill('SIGTERM');
+          resolve({
+            success: false,
+            error: 'Process timeout after 2 minutes',
+            eventCount: 0
+          });
+        }, 2 * 60 * 1000); // 2 minute timeout for faster processing
+
+        child.stdout.on('data', (data) => {
+          output += data.toString();
+        });
+
+        child.stderr.on('data', (data) => {
+          errorOutput += data.toString();
+        });
+
+        child.on('error', (error) => {
+          clearTimeout(timeout);
+          resolve({
+            success: false,
+            error: `Spawn error: ${error.message}`,
+            eventCount: 0
+          });
+        });
+
+        child.on('close', (code, signal) => {
+          clearTimeout(timeout);
+          
+          if (code === 0) {
+            const marketsMatch = output.match(/Markets processed: (\d+)/);
+            const eventsMatch = output.match(/Events generated: (\d+)/);
+            
+            const eventCount = eventsMatch ? parseInt(eventsMatch[1]) : 0;
+            
+            resolve({
+              success: true,
+              eventCount,
+              data: { output, markets: marketsMatch ? parseInt(marketsMatch[1]) : 0 }
+            });
+          } else {
+            resolve({
+              success: false,
+              error: errorOutput || `Process exited with code ${code}`,
+              eventCount: 0
+            });
+          }
+        });
+
+      } catch (error) {
+        resolve({
+          success: false,
+          error: `Exception: ${error.message}`,
+          eventCount: 0
+        });
+      }
+    });
+  }
+
+  // Show notification
   showNotification(message) {
-    // Same notification logic as before
     const title = 'Betting Data Update';
     
     if (process.platform === 'win32') {
@@ -357,99 +370,28 @@ class Scheduler {
 }
 
 // Initialize system
-const urlManager = new URLManager();
-const scheduler = new Scheduler(urlManager);
+const urlManager = new ConcurrentURLManager();
 
-// Add method to URLManager for running single process
-URLManager.prototype.runSingleProcess = function(urlConfig) {
-  return new Promise((resolve, reject) => {
-    try {
-      const urlSpecificOutputDir = path.join(config.outputDir, 
-        new URL(urlConfig.url).hostname.replace(/[^a-zA-Z0-9]/g, '_'));
-      
-      console.log(`   📁 Creating output directory: ${urlSpecificOutputDir}`);
-      if (!fs.existsSync(urlSpecificOutputDir)) {
-        fs.mkdirSync(urlSpecificOutputDir, { recursive: true });
-      }
-
-      console.log(`   🚀 Spawning process for: ${urlConfig.url}`);
-      const child = spawn('node', ['unified-process.js', urlConfig.url, urlSpecificOutputDir], {
-        stdio: 'pipe',
-        shell: true
-      });
-
-      let output = '';
-      let errorOutput = '';
-
-      // Set timeout to prevent hanging processes
-      const timeout = setTimeout(() => {
-        console.log(`   ⏰ Process timeout for ${urlConfig.url}`);
-        child.kill('SIGTERM');
-        resolve({
-          success: false,
-          error: 'Process timeout after 5 minutes',
-          eventCount: 0
-        });
-      }, 5 * 60 * 1000); // 5 minute timeout
-
-      child.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-
-      child.stderr.on('data', (data) => {
-        errorOutput += data.toString();
-        console.log(`   ⚠️ Process stderr: ${data.toString().trim()}`);
-      });
-
-      child.on('error', (error) => {
-        clearTimeout(timeout);
-        console.error(`   ❌ Process spawn error: ${error.message}`);
-        resolve({
-          success: false,
-          error: `Spawn error: ${error.message}`,
-          eventCount: 0
-        });
-      });
-
-      child.on('close', (code, signal) => {
-        clearTimeout(timeout);
-        console.log(`   🏁 Process finished with code: ${code}, signal: ${signal}`);
-        
-        if (code === 0) {
-          const marketsMatch = output.match(/Markets processed: (\d+)/);
-          const eventsMatch = output.match(/Events generated: (\d+)/);
-          
-          const eventCount = eventsMatch ? parseInt(eventsMatch[1]) : 0;
-          
-          console.log(`   ✅ Process successful: ${eventCount} events generated`);
-          resolve({
-            success: true,
-            eventCount,
-            data: { output, markets: marketsMatch ? parseInt(marketsMatch[1]) : 0 }
-          });
-        } else {
-          console.log(`   ❌ Process failed with code ${code}`);
-          if (errorOutput) {
-            console.log(`   📝 Error output: ${errorOutput.trim()}`);
-          }
-          resolve({
-            success: false,
-            error: errorOutput || `Process exited with code ${code}`,
-            eventCount: 0
-          });
-        }
-      });
-
-    } catch (error) {
-      console.error(`   ❌ Exception in runSingleProcess: ${error.message}`);
-      resolve({
-        success: false,
-        error: `Exception: ${error.message}`,
-        eventCount: 0
-      });
+// Auto-start processing for active URLs
+setTimeout(() => {
+  const activeUrls = urlManager.getURLsByStatus('active');
+  const readyUrls = urlManager.getURLsByStatus('ready');
+  
+  // Activate ready URLs that should start now
+  readyUrls.forEach(urlConfig => {
+    if (urlConfig.startTime === 'now') {
+      urlConfig.status = 'active';
+      urlManager.saveConfig();
     }
   });
-};
+  
+  // Start concurrent processing if there are active URLs
+  const allActiveUrls = urlManager.getURLsByStatus('active');
+  if (allActiveUrls.length > 0) {
+    console.log(`🚀 Auto-starting concurrent processing for ${allActiveUrls.length} active URLs`);
+    urlManager.startConcurrentProcessing();
+  }
+}, 2000);
 
 // REST API Endpoints
 app.get('/api/urls', (req, res) => {
@@ -470,11 +412,24 @@ app.post('/api/urls', async (req, res) => {
   const options = { endTime, interval, priority };
   const result = urlManager.addURL(url, startTime, options);
   
+  // Start concurrent processing if this is the first active URL
+  const activeUrls = urlManager.getURLsByStatus('active');
+  if (activeUrls.length === 1 && !urlManager.batchTimer) {
+    urlManager.startConcurrentProcessing();
+  }
+  
   res.json(result);
 });
 
 app.delete('/api/urls/:id', (req, res) => {
   const result = urlManager.removeURL(req.params.id);
+  
+  // Stop concurrent processing if no active URLs remain
+  const activeUrls = urlManager.getURLsByStatus('active');
+  if (activeUrls.length === 0) {
+    urlManager.stopConcurrentProcessing();
+  }
+  
   res.json(result);
 });
 
@@ -488,13 +443,32 @@ app.post('/api/urls/:id/activate', async (req, res) => {
     await urlManager.prepareURL(req.params.id);
   }
   
-  scheduler.activateURL(req.params.id);
+  urlConfig.status = 'active';
+  urlManager.saveConfig();
+  
+  // Start concurrent processing if not already running
+  if (!urlManager.batchTimer) {
+    urlManager.startConcurrentProcessing();
+  }
   
   res.json({ success: true, message: 'URL activated' });
 });
 
 app.post('/api/urls/:id/deactivate', (req, res) => {
-  scheduler.deactivateURL(req.params.id);
+  const urlConfig = urlManager.getURL(req.params.id);
+  if (!urlConfig) {
+    return res.status(404).json({ success: false, message: 'URL not found' });
+  }
+  
+  urlConfig.status = 'paused';
+  urlManager.saveConfig();
+  
+  // Stop concurrent processing if no active URLs remain
+  const activeUrls = urlManager.getURLsByStatus('active');
+  if (activeUrls.length === 0) {
+    urlManager.stopConcurrentProcessing();
+  }
+  
   res.json({ success: true, message: 'URL deactivated' });
 });
 
@@ -520,6 +494,7 @@ app.get('/api/status', (req, res) => {
     totalUrls: urls.length,
     statusCounts,
     activeUrls: urls.filter(u => u.status === 'active').length,
+    concurrentProcessing: !!urlManager.batchTimer,
     system: {
       uptime: process.uptime(),
       memory: process.memoryUsage(),
@@ -537,7 +512,6 @@ if (!fs.existsSync(config.outputDir)) {
 function validateSystemRequirements() {
   console.log('🔍 Validating system requirements...');
   
-  // Check if unified-process.js exists
   if (!fs.existsSync('unified-process.js')) {
     console.error('❌ unified-process.js not found! Please ensure it exists in the current directory.');
     process.exit(1);
@@ -545,7 +519,6 @@ function validateSystemRequirements() {
     console.log('✅ unified-process.js found');
   }
   
-  // Check if node_modules exists
   if (!fs.existsSync('node_modules')) {
     console.error('❌ node_modules not found! Please run "npm install" first.');
     process.exit(1);
@@ -556,48 +529,30 @@ function validateSystemRequirements() {
   console.log('✅ System requirements validated');
 }
 
-// Start system
-console.log('🚀 Starting Enhanced Monitoring System...');
-validateSystemRequirements();
-console.log(`📡 API Server starting on port ${config.apiPort}`);
-console.log(`📁 Output directory: ${config.outputDir}`);
-console.log(`📋 Config file: ${config.configFile}`);
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n🛑 Shutting down concurrent monitoring system...');
+  urlManager.stopConcurrentProcessing();
+  
+  setTimeout(() => {
+    console.log('👋 Goodbye!');
+    process.exit(0);
+  }, 1000);
+});
 
-// Start scheduler
-scheduler.start();
+// Start the system
+validateSystemRequirements();
+
+console.log('🚀 Concurrent Betting Data Monitoring System');
+console.log('═══════════════════════════════════════════════════════════════');
+console.log(`📡 API Server starting on port ${config.apiPort}`);
+console.log(`⚡ Concurrent processing enabled`);
+console.log(`📁 Output directory: ${config.outputDir}`);
+console.log('═══════════════════════════════════════════════════════════════\n');
 
 // Start API server
 app.listen(config.apiPort, () => {
-  console.log(`\n✅ Enhanced Monitoring System Ready!`);
-  console.log(`🌐 Admin Interface: http://localhost:${config.apiPort}`);
-  console.log(`📊 API Base URL: http://localhost:${config.apiPort}/api`);
-  console.log(`📝 Loaded ${urlManager.getAllURLs().length} URLs from config`);
-  console.log('\n═══════════════════════════════════════════════════════════════');
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down Enhanced Monitoring System...');
-  
-  // Clear all active timers
-  scheduler.activeTimers.forEach(timer => clearInterval(timer));
-  
-  // Save final state
-  urlManager.saveConfig();
-  
-  console.log('✅ System shutdown complete. Goodbye! 👋');
-  process.exit(0);
-});
-
-// Error handling
-process.on('uncaughtException', (error) => {
-  console.error('\n❌ Uncaught exception:', error);
-  urlManager.saveConfig();
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (error) => {
-  console.error('\n❌ Unhandled rejection:', error);
-  urlManager.saveConfig();
-  process.exit(1);
+  console.log(`✅ API server running on http://localhost:${config.apiPort}`);
+  console.log(`🌐 Admin interface: http://localhost:${config.apiPort}`);
+  console.log('Ready for concurrent URL processing! 🚀\n');
 }); 

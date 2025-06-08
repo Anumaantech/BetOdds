@@ -1,22 +1,38 @@
 services:
+  # Main monitoring system service
   - type: web
-    name: betting-odds-api
+    name: betting-monitor
     env: node
-    plan: free # Deploys on Render's free instance type
-    buildCommand: "npm install"
-    startCommand: "npm start"
-    healthCheckPath: /health
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm run concurrent-monitor
     envVars:
       - key: NODE_ENV
         value: production
-      - fromGroup: betting-odds-credentials
+      - key: API_PORT
+        value: 3000
+      - key: ENABLE_NOTIFICATIONS
+        value: false
+    autoDeploy: true
+    healthCheckPath: /api/status
 
-envVarGroups:
-  - name: betting-odds-credentials
+  # Cricket API service  
+  - type: web
+    name: cricket-api
+    env: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm run cricket-api
     envVars:
-      - key: MONGODB_URI
-        value: "mongodb+srv://event07:SzDXawU9TLHL1F3n@events.gshkxun.mongodb.net/betting_odds?retryWrites=true&w=majority&appName=Events"
-      - key: CORS_ORIGIN
-        value: "*"
+      - key: NODE_ENV
+        value: production
       - key: PORT
-        value: "3000" 
+        value: 3005
+    autoDeploy: true
+    healthCheckPath: /health
+
+databases:
+  # MongoDB database (if using Render's database service)
+  - name: cricket-data-db
+    databaseName: cricket_data
+    plan: starter 

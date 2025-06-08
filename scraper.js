@@ -89,7 +89,7 @@ async function extractBettingData() {
     });
     
     // Wait for markets to update after tab selection
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Expand all collapsed markets
     await page.evaluate(() => {
@@ -108,7 +108,7 @@ async function extractBettingData() {
     });
     
     // Wait for expanded markets to load
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Extract the data
     console.log('Extracting betting data...');
