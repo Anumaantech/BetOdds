@@ -50,7 +50,7 @@ RUN apt-get update && apt-get install -y \
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-# Install app dependencies, but skip downloading Chromium
+# Install app dependencies using the lockfile for speed
 RUN PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true npm install
 
 # Copy the rest of the application's source code from your host to your image filesystem.
