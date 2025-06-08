@@ -20,7 +20,7 @@ services:
     env: docker
     repo: https://github.com/Anumaantech/BetOdds.git # Replace with your repository URL
     dockerfilePath: ./Dockerfile
-    plan: free # Or your desired plan
+    plan: starter # Or your desired plan
     envVars:
       - key: NODE_ENV
         value: production
