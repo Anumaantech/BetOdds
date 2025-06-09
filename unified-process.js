@@ -45,34 +45,42 @@ async function extractData() {
     try {
       console.log(`   Attempt ${attempt}/${MAX_RETRIES}: Starting browser...`);
       
-      const launchArgs = [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-extensions',
-        '--disable-plugins',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-dev-shm-usage',
-        '--no-first-run',
-        '--disable-default-apps',
-        '--disable-popup-blocking',
-        '--disable-translate'
-      ];
+      // Priority 1: Use Bright Data's Web Unlocker service if available
+      if (process.env.BROWSER_WSE_URL) {
+        console.log('   🌎 Connecting to remote browser via Web Unlocker...');
+        browser = await puppeteer.connect({
+          browserWSEndpoint: process.env.BROWSER_WSE_URL,
+        });
+      } else {
+        // Priority 2: Fallback to local Chrome with an optional standard proxy
+        const launchArgs = [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--disable-extensions',
+          '--disable-plugins',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-dev-shm-usage',
+          '--no-first-run',
+          '--disable-default-apps',
+          '--disable-popup-blocking',
+          '--disable-translate'
+        ];
 
-      // Use a proxy server if the PROXY_URL is set in the environment
-      if (process.env.PROXY_URL) {
-        console.log(`   🌐 Using proxy server: ${process.env.PROXY_URL}`);
-        launchArgs.push(`--proxy-server=${process.env.PROXY_URL}`);
+        if (process.env.PROXY_URL) {
+          console.log(`   🌐 Using standard proxy server: ${process.env.PROXY_URL}`);
+          launchArgs.push(`--proxy-server=${process.env.PROXY_URL}`);
+        }
+
+        browser = await puppeteer.launch({
+          headless: "new",
+          args: launchArgs,
+          ignoreDefaultArgs: ['--enable-automation']
+        });
       }
-
-      browser = await puppeteer.launch({
-        headless: "new",
-        args: launchArgs,
-        ignoreDefaultArgs: ['--enable-automation']
-      });
 
       const page = await browser.newPage();
       
