@@ -45,24 +45,32 @@ async function extractData() {
     try {
       console.log(`   Attempt ${attempt}/${MAX_RETRIES}: Starting browser...`);
       
+      const launchArgs = [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--disable-extensions',
+        '--disable-plugins',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-dev-shm-usage',
+        '--no-first-run',
+        '--disable-default-apps',
+        '--disable-popup-blocking',
+        '--disable-translate'
+      ];
+
+      // Use a proxy server if the PROXY_URL is set in the environment
+      if (process.env.PROXY_URL) {
+        console.log(`   🌐 Using proxy server: ${process.env.PROXY_URL}`);
+        launchArgs.push(`--proxy-server=${process.env.PROXY_URL}`);
+      }
+
       browser = await puppeteer.launch({
         headless: "new",
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-extensions',
-          '--disable-plugins',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--disable-dev-shm-usage',
-          '--no-first-run',
-          '--disable-default-apps',
-          '--disable-popup-blocking',
-          '--disable-translate'
-        ],
+        args: launchArgs,
         ignoreDefaultArgs: ['--enable-automation']
       });
 
